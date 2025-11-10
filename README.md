@@ -7,7 +7,7 @@ Analysis and classification learning fro french bakery prices
 - Créer une variable temps (semaine, jour, heure de la journée etc) pour analyses temporelles
 
 # Global facts
-- Our dataset has 234005 client purchases with 7 features each. 
+- Our dataset has 234k client purchases with 7 features each. 
 - January 2021 to september 2022
 
 Articles that sold only 1 time ---> Maybe eliminate them???
