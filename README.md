@@ -2,7 +2,7 @@
 Analysis and classification learning fro french bakery prices
 
 # Les 3 datasets à utiliser (**seulement eux 3**) 
-bakery_sales_top_12
+bakery_sales_top_12_cleaned (avec jour, semaine, et colonne en trop droped, mieux pour Series temp) 
 ingredient_per_unit
 prix_ingredient
 
