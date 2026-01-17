@@ -20,15 +20,16 @@ Par jour
 
 ## Etape 1 reprendre EDA de Clara sur le dataset top 12 produits, pas sur les séries temps 
 
-## Étape 2 — Construire les séries temporelles (le cœur du projet)
 
- 2A. Séries “demandes produits”
-	1.	Agréger les ventes en quantité par produit et par pas de temps :
-	•	ex : Q[p, t] = somme des quantités vendues du produit p le jour t
-	2.	Optionnel : agréger aussi le CA :
-	•	Revenue[p, t] = somme(quantité × prix_unitaire)
-  Livrable : deux jeux de séries temporelles :
-	•	12 séries produits
+## Step 2 — Building Product Time Series (Daily Demand & Revenue)
+
+In this notebook, we transform the raw transaction-level dataset (`bakery_sales_top12.csv`) into daily time series per product. 
+
+After basic cleaning (dropping the useless index column, parsing `date`, converting `Quantity` to numeric, and converting `unit_price` from strings like `"1,05 €"` to floats), we aggregate sales **by day and by article**. We compute :
+- (1) the **daily quantity sold**
+- (2) the **daily revenue (turnover / CA)** as `Quantity × unit_price`.
+
+**The outputs** are two wide-format DataFrames ready for the next notebooks: **`qty_ts`** (rows = dates, columns = the 12 products, values = daily quantities) and **`rev_ts`** (same structure, values = daily revenues). Future notebooks should import `qty_ts` and/or `rev_ts` as the main product-level time series inputs.
 
 ## Étape 3 — EDA time series & features (cours “TimeSeries”)
 	1.	Visualiser :
