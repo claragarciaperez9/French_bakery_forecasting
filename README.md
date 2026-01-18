@@ -31,19 +31,25 @@ After basic cleaning (dropping the useless index column, parsing `date`, convert
 
 **The outputs** are two wide-format DataFrames ready for the next notebooks: **`qty_ts`** (rows = dates, columns = the 12 products, values = daily quantities) and **`rev_ts`** (same structure, values = daily revenues). Future notebooks should import `qty_ts` and/or `rev_ts` as the main product-level time series inputs.
 
-## Étape 3 — EDA time series & features (cours “TimeSeries”)
-	1.	Visualiser :
-	•	tendance / saisonnalités (jour de semaine, mois, vacances si dispo)
-	•	pics (week-end, fêtes)
-	2.	Diagnostics :
-	•	ACF / PACF sur quelques séries (produits et ingrédients)
-	3.	Features calendaires :
-	•	jour de semaine, week-end, mois
+## Step 3 — Time Series EDA (12 products)
 
-	4.	Features “lags” :
-	•	D_{t-1}, D_{t-7}, moyenne mobile 7 jours, etc.
+In this step, we performed a **time-series EDA** on the **12 product-level daily demand series** built in Step 2. 
+The notebook includes: 
+- (i) raw time-series plots
+- (ii) **weekday seasonality** (mean demand by day of week)
+- (iii) **rolling statistics** (7d/30d rolling means and rolling volatility)
+- (iv) **ACF/PACF** diagnostics, and (v) **STL decomposition** (trend/seasonal/residual) to separate weekly seasonality from longer-term movements.
 
-Livrable : notebook EDA + liste de features retenues.
+A **product-by-product interpretation** is provided inside the notebook, along with comments on volatility and spikes/outliers.
+
+### **Main conclusion across the 12 products:** 
+Demand is strongly **weekly seasonal** (weekends higher, Sunday usually the peak), with clear ACF/PACF signals at **lags 7, 14, 21, …**. Most products also show **non-stationarity** (level shifts/regime changes over time) and **time-varying volatility**, with occasional **spikes/outliers** (especially for pastries/desserts).  
+
+### **Implications for forecasting:** 
+Use the **seasonal naïve baseline** \(\hat{y}_t = y_{t-7}\) as a strong benchmark, prefer models that handle **weekly seasonality (m=7)** and **level changes** (e.g., SARIMA / STL+residual modeling), and keep an **outlier monitoring step**. Because demand evolves, adaptive approaches (rolling windows / forgetting factors) may help.
+
+All generated figures are saved in **`reports/figures/`**.
+
 
 ## Étape 4 — Définir le protocole d’évaluation (très important)
 	1.	Split temporel :
