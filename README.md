@@ -51,7 +51,7 @@ Use the **seasonal naïve baseline** \(\hat{y}_t = y_{t-7}\) as a strong benchma
 All generated figures are saved in **`reports/figures/`**.
 
 
-## Étape 4 — Définir le protocole d’évaluation (très important)
+## Step 4 — Evaluation Protocol
 
 This step defines a rigorous and leakage-free evaluation framework for daily product demand forecasting.
 
@@ -71,7 +71,7 @@ Two forecasting horizons are considered:
 Model accuracy is measured using MAE and RMSE, computed per product and aggregated globally. Results highlight strong weekly seasonality, significant non-stationarity over time, and large differences in forecast difficulty across products. Weekly forecasts are consistently harder than next-day forecasts, reinforcing the need for seasonality-aware models.
 
 
-Step 5 — Baseline Forecasting Models
+## Step 5 — Baseline Forecasting Models
 
 This step establishes strong baseline models that serve as reference points for evaluating more advanced forecasting approaches.
 
