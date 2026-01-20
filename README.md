@@ -52,27 +52,42 @@ All generated figures are saved in **`reports/figures/`**.
 
 
 ## Étape 4 — Définir le protocole d’évaluation (très important)
-	1.	Split temporel :
-	•	Train : début → date T0
-	•	Validation : T0 → T1
-	•	Test : T1 → fin
-	2.	Backtesting (rolling/expanding window) :
-	•	tu ré-entraînes (ou mets à jour) et tu prédis la fenêtre suivante
-	3.	Métriques :
-	•	MAE (très lisible)
-	•	RMSE (punit les gros écarts)
-	•	MAPE (attention si quantités parfois 0)
-	•	Option business : erreur sur coût total semaine suivante
 
-Livrable : fonctions backtest() + tableau de scores.
+This step defines a rigorous and leakage-free evaluation framework for daily product demand forecasting.
+
+Starting from transaction-level bakery sales data, daily demand time series were built for the 12 most sold products. A strict temporal split was applied to respect the chronological nature of the data:
+
+- (i) Train: January 2021 → March 2022
+- (ii) Validation: April 2022 → June 2022
+- (iii) Test: July 2022 → September 2022
+
+Forecasting performance is evaluated using an expanding window backtesting protocol, which reflects real operational conditions: at each forecast origin, models are trained on all past observations and used to predict future demand.
+
+Two forecasting horizons are considered:
+
+- (i) H = 1 day ahead (short-term operational decisions)
+- (ii) H = 7 days ahead (weekly ingredient ordering)
+
+Model accuracy is measured using MAE and RMSE, computed per product and aggregated globally. Results highlight strong weekly seasonality, significant non-stationarity over time, and large differences in forecast difficulty across products. Weekly forecasts are consistently harder than next-day forecasts, reinforcing the need for seasonality-aware models.
 
 
-## Étape 5 — Baselines (obligatoires)
-	1.	Naïf persistant : \hat D_t = D_{t-1}
-	2.	Saisonnier : \hat D_t = D_{t-7}
-	3.	Moyenne mobile : moyenne des 7 derniers jours
+Step 5 — Baseline Forecasting Models
 
-Livrable : baseline report (scores + graph prévision vs réel).
+This step establishes strong baseline models that serve as reference points for evaluating more advanced forecasting approaches.
+
+Three baseline methods were implemented:
+
+- (i) Naive (persistence): assumes future demand equals the most recent observation
+
+- (ii) Seasonal naive: uses demand from the same weekday one week earlier
+
+- (iii) 7-day moving average: averages demand over the last seven days
+
+All baselines were evaluated using the same expanding-window backtesting protocol defined in Step 4, for both forecasting horizons (H = 1 and H = 7), on validation and test sets.
+
+Results show that all baselines significantly outperform a dummy reference model. For next-day forecasting (H = 1), differences between baselines are small, indicating strong short-term autocorrelation in demand. For weekly forecasting (H = 7), the seasonal naive baseline clearly outperforms the others, confirming the dominant role of weekly seasonality in bakery sales.
+
+These results define a strong performance floor: any advanced forecasting model must outperform the seasonal naive baseline, particularly for weekly forecasts, to justify its added complexity.
 
 ⸻
 
