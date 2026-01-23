@@ -93,15 +93,25 @@ These results define a strong performance floor: any advanced forecasting model 
 
 ## Étape 6 — Modèles “time series classiques”
 
-Sur quelques séries “importantes” (top ingrédients ou top produits) :
-	1.	AR / ARMA / ARIMA / SARIMA (si saisonnalité hebdo)
-	2.	Lissage exponentiel / Holt-Winters (si tu l’implémentes)
+### Step 1: Baseline Model Implementation SARIMAX and Holt-Winters (Triple Exponential Smoothing).
 
-Tu peux faire :
-	•	soit un modèle par produit puis conversion.
+SARIMAX was chosen for its ability to handle non-stationary data and complex seasonal patterns. I initially applied a parsimonious $(1,1,1)(1,1,1)_7$ configuration. 
+Holt-Winters was utilized as it effectively decomposes data into level, trend, and seasonality. 
+Both models were configured with a seasonal period of 7 days. This decision was directly informed by our Exploratory Data Analysis (EDA), which revealed a dominant weekly cycle where sales peaks consistently occurred on specific days (notably weekends).
 
-Livrable : comparaison vs baselines.
+### Step 2: Performance Evaluation vs. Baseline
+The initial results were very encouraging. Both SARIMAX and Holt-Winters achieved significantly lower MAE (Mean Absolute Error) and RMSE (Root Mean Squared Error) scores compared to a Zero-baseline. This confirmed that the models had successfully "learned" the underlying temporal dynamics of the bakery, providing genuine predictive value for inventory management compared to a purely reactive approach.
 
+### Step 3: Hyperparameter Optimization
+To refine the forecasts further, I transitioned from a "one-size-fits-all" approach to a data-driven optimization for each specific product:For SARIMAX, I implemented the auto_arima algorithm, which explores multiple $(p, d, q)$ combinations to minimize the Akaike Information Criterion (AIC). For Holt-Winters, I optimized the seasonal component by testing both additive and multiplicative frameworks to see how fluctuations scaled with sales volume.
+
+### Step 4: Prédiction and Analysis of Results and Model Limitations
+Despite the increased complexity, the results showed that the optimized models performed slightly worse than our initial theoretical baseline. This is likely due to overfitting: the automated search tuned the parameters too closely to the "noise" of the training data, which hindered their ability to generalize to the test period.
+
+Furthermore, we observed that in both cases, the forecasts appear to "repeat" a standard week indefinitely. This phenomenon occurs because these models rely solely on historical patterns. Since the weekly cycle is the most dominant signal in our data, and we lack external variables (such as weather, local events, or school holidays), the models statistically converge on a constant seasonal cycle as the most probable forecast.
+
+2 csv files were created : prediction_expert_complet containing the tre train val and test predictions of both SARIMAX and Holt-Winters and 
+prédiction_expert_avec_futur which contains the 7 days predictions in addition to the other predictions.
 ⸻
 
 
