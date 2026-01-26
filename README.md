@@ -113,7 +113,22 @@ Furthermore, we observed that in both cases, the forecasts appear to "repeat" a 
 2 csv files were created : prediction_expert_complet containing the tre train val and test predictions of both SARIMAX and Holt-Winters and 
 prédiction_expert_avec_futur which contains the 7 days predictions in addition to the other predictions.
 ⸻
+# STEP 07
+This part implements online expert aggregation.
 
+We combine multiple expert predictions $f_{t,k}$ into an aggregate $\hat{y}_t = \sum_{k=1}^K w_{t,k} f_{t,k}$.
+Weights are updated via 
+- Exponentially Weighted Average (EWA): $w_{t,k} \propto \exp(-\eta L_{t-1,k})$.
+- Exponentiated Gradient (EG): $w_{t+1,k} \propto w_{t,k} \exp(-\eta \nabla \ell(\hat{y}_t, y_t))$.
+  
+The learning rate $\eta$ is optimized using a grid search over the validation period.
+Adding a Moving Average ($MA_{J-7}$) expert significantly improved the overall accuracy.
+Results:
+- Products with high volume, like "Traditional Baguette", naturally exhibit the largest $RMSE$.
+- EWA weights effectively "track" the best-performing expert as the sales regime changes.
+- The "Cookie" product favored a high $\eta=0.5$, indicating a need for rapid weight shifts.
+- Aggregation outperfomrs individual models through diversification.
+- Weight evolution plots show the algorithms successfully identifying the superior experts.
 
 
 ## Étape 9 — Modèles “online / adaptatifs” (apprentissage séquentiel)
