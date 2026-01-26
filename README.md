@@ -1,24 +1,29 @@
 # French_bakery_forecasting
 Analysis and classification learning fro french bakery prices
 
-# Les 3 datasets à utiliser (**seulement eux 3**) 
-bakery_sales_top_12_cleaned (avec jour, semaine, et colonne en trop droped, mieux pour Series temp) 
-ingredient_per_unit
-prix_ingredient
-
 # Global facts
 - Our dataset has 234k client purchases with 7 features each. 
 - January 2021 to september 2022
-- **TOUT EN ANGLAIS ZEBI** 
+- Final objective: Forecast the quantity of each ingredient that will need to be ordered by analyzing the quantities of items sold in the past.
+- Chosen granularity: Daily.
 
-# Objectif final :
-Prévoir la quantité de chaque ingrédient qui devra être commandé EN ANALYSANT les quantitées d'ARTICLES VENDUS dans le passé
+## Step 0 — Dataset Reduction to Top 12 Articles (≈75% of Total Sales)
 
-# Granularité choisie :
-Par jour 
+In this notebook, we load the original transaction dataset (`data_tmp/bakery_sales.csv`) and build a reduced version focused on the **12 best-selling articles** that together represent roughly **75% of total units sold**.
 
+After checking that there are no missing/aberrant values, we clean the data by removing **refund-related transactions** (negative `Quantity`) along with their corresponding purchase lines (using `ticket_number` logic), and we also exclude the articles **"COUPE"** and **"FORMULE SANDWICH"**. We then compute total units sold per article, remove the least-selling products (bottom ~25% of cumulative sales), and keep the remaining “top” set, resulting in a dataset going from **146 → 12 articles** and **207,068 → 143,702 rows** (units sold **331,332 → 251,675**).
 
-## Etape 1 reprendre EDA de Clara sur le dataset top 12 produits, pas sur les séries temps 
+The final reduced dataset is exported to **`data_tmp/bakery_sales_top12.csv`** for use in the next notebooks.
+
+## Step 1 — EDA on the Top 12 Articles (Popularity, Pricing, and Temporal Patterns)
+
+In this notebook, we perform an exploratory analysis of the reduced dataset (`data_tmp/bakery_sales_top12.csv`). 
+
+After basic cleaning and feature engineering (lowercasing column names, converting `unit_price` from strings to numeric, building a proper datetime from `date` + `time`, and creating `year/month/day_of_week/hour/is_weekend`), we compute **revenue** as `quantity × unit_price` and export a cleaned file to `data_tmp/bakery_sales_top12_cleaned.csv`.  
+
+We then analyze the **popularity** of products using three complementary views: (1) total **quantity sold** per article, (2) **purchase frequency** (number of lines/tickets per article), and (3) total **revenue** per article — each with percentage contributions and barplots for the top 12 items, followed by a short interpretation (e.g., TRADITIONAL BAGUETTE dominates both volume and revenue). 
+
+Finally, we check **price variability** over time via min/max unit prices per article, and we summarize **temporal sales patterns** by plotting revenue by **hour**, **day of week**, and **month** (highlighting typical peaks such as the morning rush, a strong Sunday effect, and a large July spike), alongside a few key aggregate numbers.
 
 
 ## Step 2 — Building Product Time Series (Daily Demand & Revenue)
@@ -113,7 +118,7 @@ Furthermore, we observed that in both cases, the forecasts appear to "repeat" a 
 2 csv files were created : prediction_expert_complet containing the tre train val and test predictions of both SARIMAX and Holt-Winters and 
 prédiction_expert_avec_futur which contains the 7 days predictions in addition to the other predictions.
 ⸻
-# STEP 07
+# STEP 07 Online expert aggregation
 This part implements online expert aggregation.
 
 We combine multiple expert predictions $f_{t,k}$ into an aggregate $\hat{y}_t = \sum_{k=1}^K w_{t,k} f_{t,k}$.
