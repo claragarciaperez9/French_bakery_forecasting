@@ -51,44 +51,84 @@ Use the **seasonal naïve baseline** \(\hat{y}_t = y_{t-7}\) as a strong benchma
 All generated figures are saved in **`reports/figures/`**.
 
 
-## Étape 4 — Définir le protocole d’évaluation (très important)
-	1.	Split temporel :
-	•	Train : début → date T0
-	•	Validation : T0 → T1
-	•	Test : T1 → fin
-	2.	Backtesting (rolling/expanding window) :
-	•	tu ré-entraînes (ou mets à jour) et tu prédis la fenêtre suivante
-	3.	Métriques :
-	•	MAE (très lisible)
-	•	RMSE (punit les gros écarts)
-	•	MAPE (attention si quantités parfois 0)
-	•	Option business : erreur sur coût total semaine suivante
+## Step 4 — Evaluation Protocol
 
-Livrable : fonctions backtest() + tableau de scores.
+This step defines a rigorous and leakage-free evaluation framework for daily product demand forecasting.
+
+Starting from transaction-level bakery sales data, daily demand time series were built for the 12 most sold products. A strict temporal split was applied to respect the chronological nature of the data:
+
+- (i) Train: January 2021 → March 2022
+- (ii) Validation: April 2022 → June 2022
+- (iii) Test: July 2022 → September 2022
+
+Forecasting performance is evaluated using an expanding window backtesting protocol, which reflects real operational conditions: at each forecast origin, models are trained on all past observations and used to predict future demand.
+
+Two forecasting horizons are considered:
+
+- (i) H = 1 day ahead (short-term operational decisions)
+- (ii) H = 7 days ahead (weekly ingredient ordering)
+
+Model accuracy is measured using MAE and RMSE, computed per product and aggregated globally. Results highlight strong weekly seasonality, significant non-stationarity over time, and large differences in forecast difficulty across products. Weekly forecasts are consistently harder than next-day forecasts, reinforcing the need for seasonality-aware models.
 
 
-## Étape 5 — Baselines (obligatoires)
-	1.	Naïf persistant : \hat D_t = D_{t-1}
-	2.	Saisonnier : \hat D_t = D_{t-7}
-	3.	Moyenne mobile : moyenne des 7 derniers jours
+## Step 5 — Baseline Forecasting Models
 
-Livrable : baseline report (scores + graph prévision vs réel).
+This step establishes strong baseline models that serve as reference points for evaluating more advanced forecasting approaches.
+
+Three baseline methods were implemented:
+
+- (i) Naive (persistence): assumes future demand equals the most recent observation
+
+- (ii) Seasonal naive: uses demand from the same weekday one week earlier
+
+- (iii) 7-day moving average: averages demand over the last seven days
+
+All baselines were evaluated using the same expanding-window backtesting protocol defined in Step 4, for both forecasting horizons (H = 1 and H = 7), on validation and test sets.
+
+Results show that all baselines significantly outperform a dummy reference model. For next-day forecasting (H = 1), differences between baselines are small, indicating strong short-term autocorrelation in demand. For weekly forecasting (H = 7), the seasonal naive baseline clearly outperforms the others, confirming the dominant role of weekly seasonality in bakery sales.
+
+These results define a strong performance floor: any advanced forecasting model must outperform the seasonal naive baseline, particularly for weekly forecasts, to justify its added complexity.
 
 ⸻
 
 ## Étape 6 — Modèles “time series classiques”
 
-Sur quelques séries “importantes” (top ingrédients ou top produits) :
-	1.	AR / ARMA / ARIMA / SARIMA (si saisonnalité hebdo)
-	2.	Lissage exponentiel / Holt-Winters (si tu l’implémentes)
+### Step 1: Baseline Model Implementation SARIMAX and Holt-Winters (Triple Exponential Smoothing).
 
-Tu peux faire :
-	•	soit un modèle par produit puis conversion.
+SARIMAX was chosen for its ability to handle non-stationary data and complex seasonal patterns. I initially applied a parsimonious $(1,1,1)(1,1,1)_7$ configuration. 
+Holt-Winters was utilized as it effectively decomposes data into level, trend, and seasonality. 
+Both models were configured with a seasonal period of 7 days. This decision was directly informed by our Exploratory Data Analysis (EDA), which revealed a dominant weekly cycle where sales peaks consistently occurred on specific days (notably weekends).
 
-Livrable : comparaison vs baselines.
+### Step 2: Performance Evaluation vs. Baseline
+The initial results were very encouraging. Both SARIMAX and Holt-Winters achieved significantly lower MAE (Mean Absolute Error) and RMSE (Root Mean Squared Error) scores compared to a Zero-baseline. This confirmed that the models had successfully "learned" the underlying temporal dynamics of the bakery, providing genuine predictive value for inventory management compared to a purely reactive approach.
 
+### Step 3: Hyperparameter Optimization
+To refine the forecasts further, I transitioned from a "one-size-fits-all" approach to a data-driven optimization for each specific product:For SARIMAX, I implemented the auto_arima algorithm, which explores multiple $(p, d, q)$ combinations to minimize the Akaike Information Criterion (AIC). For Holt-Winters, I optimized the seasonal component by testing both additive and multiplicative frameworks to see how fluctuations scaled with sales volume.
+
+### Step 4: Prédiction and Analysis of Results and Model Limitations
+Despite the increased complexity, the results showed that the optimized models performed slightly worse than our initial theoretical baseline. This is likely due to overfitting: the automated search tuned the parameters too closely to the "noise" of the training data, which hindered their ability to generalize to the test period.
+
+Furthermore, we observed that in both cases, the forecasts appear to "repeat" a standard week indefinitely. This phenomenon occurs because these models rely solely on historical patterns. Since the weekly cycle is the most dominant signal in our data, and we lack external variables (such as weather, local events, or school holidays), the models statistically converge on a constant seasonal cycle as the most probable forecast.
+
+2 csv files were created : prediction_expert_complet containing the tre train val and test predictions of both SARIMAX and Holt-Winters and 
+prédiction_expert_avec_futur which contains the 7 days predictions in addition to the other predictions.
 ⸻
+# STEP 07
+This part implements online expert aggregation.
 
+We combine multiple expert predictions $f_{t,k}$ into an aggregate $\hat{y}_t = \sum_{k=1}^K w_{t,k} f_{t,k}$.
+Weights are updated via 
+- Exponentially Weighted Average (EWA): $w_{t,k} \propto \exp(-\eta L_{t-1,k})$.
+- Exponentiated Gradient (EG): $w_{t+1,k} \propto w_{t,k} \exp(-\eta \nabla \ell(\hat{y}_t, y_t))$.
+  
+The learning rate $\eta$ is optimized using a grid search over the validation period.
+Adding a Moving Average ($MA_{J-7}$) expert significantly improved the overall accuracy.
+Results:
+- Products with high volume, like "Traditional Baguette", naturally exhibit the largest $RMSE$.
+- EWA weights effectively "track" the best-performing expert as the sales regime changes.
+- The "Cookie" product favored a high $\eta=0.5$, indicating a need for rapid weight shifts.
+- Aggregation outperfomrs individual models through diversification.
+- Weight evolution plots show the algorithms successfully identifying the superior experts.
 
 
 ## Étape 9 — Modèles “online / adaptatifs” (apprentissage séquentiel)
