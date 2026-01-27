@@ -135,6 +135,8 @@ Results:
 - Aggregation outperfomrs individual models through diversification.
 - Weight evolution plots show the algorithms successfully identifying the superior experts.
 
+All generated figures are saved in **`reports/figures/`**.
+
 
 ## Étape 9 — Modèles “online / adaptatifs” (apprentissage séquentiel)
 
@@ -149,16 +151,6 @@ Livrable : backtest en mode streaming + comparaison à la version offline.
 
 ⸻
 
-## Étape 10 — Agrégation d’experts (EWA / EG) = le gros plus “cours”
-	1.	Définir tes experts :
-	•	persistant, saisonnier, ARIMA, Ridge, RF, GB, online linéaire, etc.
-	2.	Pour chaque date, chaque expert prédit \hat D^{(k)}_t
-	3.	Mettre à jour les poids via EWA :
-	•	poids \omega_{k,t} qui pénalisent les experts ayant eu une grosse erreur
-	4.	Prédiction finale :
-	•	\hat D_t = \sum_k \omega_{k,t}\hat D^{(k)}_t
-
-Livrable : courbe des poids dans le temps (on voit quels experts dominent selon les périodes).
 
 ⸻
 
