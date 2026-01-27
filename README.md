@@ -137,67 +137,20 @@ Results:
 
 All generated figures are saved in **`reports/figures/`**.
 
+# STEP 08 Predict next ingredient order
+This notebook converts aggregated sales forecasts into ingredient needs, then produces a simple “next order” table.
 
-## Étape 9 — Modèles “online / adaptatifs” (apprentissage séquentiel)
+We start from the **EG aggregated forecast** (`eg_prediction`) and build a `final_forecasts` dataframe with `(Date, product, real_sale, final_forecast)`.
 
-Objectif : montrer que le modèle peut s’adapter si les habitudes changent.
-	1.	Régression linéaire “online” :
-	•	SGDRegressor avec partial_fit
-	2.	Régression pondérée (forgetting factor) :
-	•	donner plus de poids aux jours récents
-	3.	Variante “online” sur features identiques aux modèles régression
+Using the recipe table **`ingredients_per_unite.csv`** (quantities per unit product), we compute for each row (day × product):
+- **Real ingredient consumption**: `real_<ing> = real_sale × qty_per_unit(product, ing)`
+- **Predicted ingredient consumption**: `predict_<ing> = final_forecast × qty_per_unit(product, ing)`
 
-Livrable : backtest en mode streaming + comparaison à la version offline.
+We then **aggregate by day** (sum over all products) to obtain daily totals per ingredient.
 
-⸻
+Evaluation:
+- Compute **RMSE** and **MAE** (global over all ingredients) on the **test period** `2022-07-01 → 2022-09-30`, ignoring NaN/Inf values.
 
-
-⸻
-
-## Étape 11 — Traduire prévisions → commandes → coût
-	1.	Prévoir pour chaque ingrédient \hat D[i,t] sur l’horizon (ex semaine suivante)
-	2.	Convertir en quantité à commander :
-	•	si tu as un stock actuel : commande = max(0, besoin - stock)
-	•	sinon : commande = besoin
-	3.	Calculer le coût :
-	•	coût = commande × prix_fournisseur_ingrédient
-
-Livrable : tableau final “date future / ingrédient / quantité / coût”.
-
-⸻
-
-## Étape 12 — Restitution & packaging
-	1.	Graphs lisibles :
-	•	réel vs prédit (par ingrédient majeur)
-	•	coût réel vs coût prédit (si possible)
-	2.	Un script reproductible :
-	•	src/data.py (load + clean)
-	•	src/features.py
-	•	src/models.py
-	•	src/backtest.py
-	•	main.py (exécution complète)
-	3.	Un README :
-	•	comment lancer
-	•	structure du projet
-	•	résultats
-
-
-
-
-
-32.6% of the articles sold are TRADITIONAL BAGUETTE, 
-8,2% are CROISSANT
-7% are PAIN AU CHOCOLAT
-6% are COUPE
-and 6% are BANETTE
-In contrast,
-TRADITIONAL BAGUETTE represents the 21% of the total sales (in €) followed by FORMULE SANDWICH wich represents 7.2% of the revenue even if it's the 8th article more bought, plus it's usually bought in more than one unit. BANNETTE and BAGUETTE toguether represent the 8% of the total revenue. PAIN AU CHOCOLAT and CROISSANT represent 3.5% of the revenue each. 
-
-
-In general, the most bought articles are the most frquently bought. With exception: 
-COMPLET is bought more frequently but in smaller quantity, 3535.0 times and in 3140 occasions
-MOISSON is bought more frequently but in smaller quantity, 3362.0 times and in 3107 occasions
-COOKIE is bought less frequently but in bigger quantity 3779.0 times and in 2002 occasions
-ECLAIR is bought less frequently but in bigger quantity 3654.0 times and in 2006 occasions
-
+Final output:
+- A table `order_df` giving the **quantity to order per ingredient** as the **sum of predicted quantities over the last 7 available days**.
 

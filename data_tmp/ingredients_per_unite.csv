@@ -1,4 +1,4 @@
-produit,farine,sel,levure,sucre,beurre,lait,barres_chocolat,graines,farine_de_seigle,son_de_ble,creme,oeufs,chocolat
+product,farine,sel,levure,sucre,beurre,lait,barres_chocolat,graines,farine_de_seigle,son_de_ble,creme,oeufs,chocolat
 BAGUETTE,0.16,0.0045,0.0005,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 TRADITIONAL_BAGUETTE,0.16,0.0045,0.0005,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 PAIN_AU_CHOCOLAT,0.036,0.0008,0.0016,0.0048,0.0176,0.0016,0.0016,0.0,0.0,0.0,0.0,0.0,0.0
